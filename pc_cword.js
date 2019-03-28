@@ -60,7 +60,7 @@ var acrossClue;
 // Will refernce the down clue curretly selected in the puzzle
 var downClue;
 // Stores the current typing direvtion
-var typeDirection;
+var typeDirection = "right";
 
 // Runs the init function when the page loads
 window.onload = init;
@@ -76,9 +76,9 @@ function init() {
       // The downId variable was declared, setting its value equal to the value of the data-clue-d attribute for currentLetter
       var downID = currentLetter.dataset.clueD;
       // The value of acrossClue was set to reference the element with the id attribute acrossID
-      acrossClue = document.getElementById("acrossID");
+      acrossClue = document.getElementById(currentLetter.dataset.clueA);
       // The value of downClue was set to reference the element with the id attribute downID
-      downClue = document.getElementById("downID");
+      downClue = document.getElementById(currentLetter.dataset.clueD);
       // Colors the crosswords puzzle first letter by calling the formatPuzzle function using the currentLetter as a parameter
       formatPuzzle(currentLetter);
       // Loops through the items within the allLetters object collection and should allow the user to select a puzzle cell using their mouse
@@ -88,6 +88,32 @@ function init() {
             // Adds onmousedown event handler that will run an anonymous function calling the formatPuzzle function using the event object target as the parameter
             allLetters[i].onmousedown = function (e) {
                   formatPuzzle(e.target);
+            }
+      }
+      // Runs the selectLetter funtion in response to the keydown event occuring with the document
+      document.onkeydown = selectLetter;
+      //
+      var typeImage = document.getElementById("directionImg");
+      //
+      typeImage.style.cursor = "pointer";
+      typeImage.onclick = switchTypeDirection;
+      //
+      document.getElementById("showErrors").onclick = function () {
+            for (var i = 0; i < allLetters.length; i++) {
+                  if (allLetters[i].textContent !== allLetters[i].dataset.letter) {
+                        allLetters[i].style.color = "red"
+                        setTimeout(function () {
+                              for (var i = 0; i < allLetters.length; i++) {
+                                    allLetters[i].style.color = "";
+                              }
+                        }, 300);
+                  }
+            }
+      }
+      //
+      document.getElementById("showSolution").onclick = function () {
+            for (var i = 0; i < allLetters.length; i++) {
+                  allLetters[i].textContent = allLetters[i].dataset.letter;
             }
       }
 }
@@ -106,35 +132,84 @@ function formatPuzzle(puzzleLetter) {
       // Determines wether or not ther exists an across clue for the current letter by testing wether currentLetter.dataset.clueA is not equal to undefined
       if (currentLetter.dataset.clueA != undefined) {
             // References the element with the ID value of currentLetter.dataset.clueA in order to reference the across clue for the current letter
-            acrossClue = document.getElementById("currentLetter.dataset.clueA");
+            acrossClue = document.getElementById(currentLetter.dataset.clueA);
             // Changes the acrossClue color to blue
             acrossClue.style.color = "blue";
             // Refrences all elements selected by the CSS selector where clue is the value of data-clue-A for the cuurentLetter
-            wordLetters = document.querySelectorAll("data-clue-A = clue");
+            wordLetters = document.querySelectorAll("[data-clue-a = " + currentLetter.dataset.clueA + "]");
             // Changes the style of the background color to a light blue
-            wordLetters.style.backgroundColor = "rgb(231, 231, 255)";
+            for (var i = 0; i < wordLetters.length; i++) {
+                  wordLetters[i].style.backgroundColor = "rgb(231, 231, 255)";
+            }
       }
       if (currentLetter.dataset.clueD != undefined) {
             // References the element with the ID value of currentLetter.dataset.clueD in order to reference the down clue for the current letter
-            downClue = document.getElementById("currentLetter.dataset.clueD");
+            downClue = document.getElementById(currentLetter.dataset.clueD);
             // Changes the downClue color to red
             downClue.style.color = "red";
             // Refrences all elements selected by the CSS selector where clue is the value of data-clue-A for the cuurentLetter
-            wordLetters = document.querySelectorAll("data-clue-D = clue");
+            wordLetters = document.querySelectorAll("[data-clue-d = " + currentLetter.dataset.clueD + "]");
             // Changes the style of the background color to a light blue
-            wordLetters.style.backgroundColor = "rgb(255, 231, 231)";
+            for (var i = 0; i < wordLetters.length; i++) {
+                  wordLetters[i].style.backgroundColor = "rgb(255, 231, 231)";
+            }
       }
       // If the typeDirection = "right", then the backgroundColor will be changed to the given rgb color and if it is not right then it will change the currentLetter to a red rgb that was given
-      if (typeDirection = "right") {
+      if (typeDirection === "right") {
             currentLetter.style.backgroundColor = "rgb(191, 191, 255)";
       } else {
             currentLetter.style.backgroundColor = "rgb(255, 191, 191)";
       }
 }
 
-//The purpose of this function is to allow the user to select puzzle cells using the keyboard
-function selectLetter() {
+// The purpose of this function is to allow the user to select puzzle cells using the keyboard
+function selectLetter(e) {
+      // The leftLetter, upLetter, rightLetter, and downLetter variables were declared to have the values refrence the letters to left, up, right, and down the current letter selected in the table
+      var leftLetter = document.getElementById(currentLetter.dataset.left);
+      var upLetter = document.getElementById(currentLetter.dataset.up);
+      var rightLetter = document.getElementById(currentLetter.dataset.right);
+      var downLetter = document.getElementById(currentLetter.dataset.down);
+      // Stores the code of the key pressed by the user in the userKey variable
+      var userKey = e.keyCode;
+      // Determines the program response based on the value of the userKey
+      if (userKey === 37) {
+            formatPuzzle(leftLetter);
+      } else if (userKey === 38) {
+            formatPuzzle(upLetter);
+      } else if (userKey === 39 || userKey === 9) {
+            formatPuzzle(rightLetter);
+      } else if (userKey === 40 || userKey === 13) {
+            formatPuzzle(downLetter);
+      } else if (userKey === 8 || userKey === 46) {
+            currentLetter.textContent = "";
+      } else if (userKey === 32) {
+            switchTypeDirection();
+      } else if (userKey >= 65 && userKey <= 90) {
+            currentLetter.textContent = getChar(userKey);
+            if (typeDirection === "right") {
+                  formatPuzzle(rightLetter);
+            } else {
+                  formatPuzzle(downLetter);
+            }
+      }
+      // Prevents the browser from performing the default action in response to the keyboard event
+      e.preventDefault();
+}
+
+// Toggles the typing direction between right and down
+function switchTypeDirection() {
       //
+      var typeImage = document.getElementById("directionImg");
+      //
+      if (typeDirection === "right") {
+            typeDirection = "down";
+            typeDirection = "pc_down.png";
+            currentLetter.style.backgroundColor = "rgb(255, 191, 191)";
+      } else {
+            typeDirection = "right";
+            typeImage.src = "pc_right.png";
+            currentLetter.style.backgroundColor = "rgb(191, 191, 255)";
+      }
 }
 
 /*====================================================*/
